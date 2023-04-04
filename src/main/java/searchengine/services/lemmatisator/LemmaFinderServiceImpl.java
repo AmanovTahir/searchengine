@@ -31,6 +31,7 @@ public class LemmaFinderServiceImpl implements LemmaFinderService {
     public Map<String, Integer> collect(String text) {
         Map<String, Integer> lemmas = new ConcurrentHashMap<>();
         Arrays.stream(arrayContainsRussianWords(htmlToText(text)))
+                .parallel()
                 .filter(word -> !word.isEmpty())
                 .filter(this::hasParticleProperty)
                 .filter(word -> !luceneMorphology.getNormalForms(word).isEmpty())

@@ -6,13 +6,13 @@ import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 public interface IndexModelService {
 
-    void save(List<Lemma> lemmas, PageModel pageModel);
+    List<Index> save(List<Lemma> lemmas, PageModel pageModel);
 
-    List<Index> collect(List<Lemma> lemmas, PageModel pageModel);
+    CompletableFuture<List<Index>> collect(List<Lemma> lemmas, PageModel pageModel);
 
     Index init(PageModel pageModel, Lemma lemma);
 

@@ -1,10 +1,14 @@
 package searchengine.services.index;
 
+import searchengine.model.Index;
 import searchengine.model.SiteModel;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface PageIndexService {
 
-    void indexPages(String url, SiteModel siteModel);
+    CompletableFuture<List<Index>> indexPages(String url, SiteModel siteModel);
 
     void indexPage(String url, SiteModel siteModel);
 }

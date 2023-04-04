@@ -1,33 +1,42 @@
 package searchengine.services.index;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import searchengine.model.Index;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
+import searchengine.repository.IndexRepository;
 import searchengine.services.modelServices.LemmaModelService;
 import searchengine.services.modelServices.PageModelService;
 import searchengine.services.parser.ParseStateService;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Service
+@Scope("prototype")
 @Log4j2
 public class PageIndexServiceImpl implements PageIndexService {
+    private final IndexRepository indexRepository;
     private final PageModelService pageModelService;
     private final ParseStateService stopService;
-    private final LemmaModelService lemmaService;
-    private final ReentrantReadWriteLock lock;
+    private final LemmaModelService lemmaModelService;
 
 
+    @SneakyThrows
     @Override
-    public void indexPages(String url, SiteModel siteModel) {
+    public CompletableFuture<List<Index>> indexPages(String url, SiteModel siteModel) {
         PageModel pageModel = pageModelService.get(url, siteModel);
         if (isApproved(pageModel)) {
-            return;
+            return CompletableFuture.completedFuture(new ArrayList<>());
         }
-        lemmaService.indexPage(pageModel);
+        return CompletableFuture.completedFuture(lemmaModelService.indexPage(pageModel).join().parallelStream().toList());
     }
 
     @Override
@@ -36,7 +45,7 @@ public class PageIndexServiceImpl implements PageIndexService {
         if (isApproved(pageModel)) {
             return;
         }
-        lemmaService.indexPage(pageModel);
+        indexRepository.saveAllAndFlush(lemmaModelService.indexPage(pageModel).join().parallelStream().toList());
     }
 
     private boolean isApproved(PageModel pageModel) {

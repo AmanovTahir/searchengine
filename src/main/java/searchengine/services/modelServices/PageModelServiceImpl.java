@@ -65,7 +65,7 @@ public class PageModelServiceImpl implements PageModelService {
     @Override
     public Set<PageModel> getSearchQueryPages(SearchRequestDto searchRequestDto) {
         Map<Lemma, Double> queryLemmas = lemmaFinderService.getSearchQueryLemma(searchRequestDto);
-        Set<Lemma> lemmas = lemmaModelService.getLemmasByQuery(queryLemmas);
+        Set<Lemma> lemmas = lemmaModelService.getLemmasByQuery(queryLemmas).join();
         Optional<Lemma> lemmaOptional = lemmas.stream().findFirst();
         return lemmaOptional.map(lemma -> getPagesBySearch(lemmas, lemma)).orElse(Collections.emptySet());
     }

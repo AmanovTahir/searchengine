@@ -2,6 +2,8 @@ package searchengine.services.modelServices;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
@@ -9,12 +11,12 @@ import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
-import searchengine.repository.PageRepository;
 import searchengine.services.parser.ParseStateService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Component
@@ -25,20 +27,17 @@ public class IndexModelServiceImpl implements IndexModelService {
     private final ParseStateService stopService;
 
     @Override
-    public void save(List<Lemma> lemmas, PageModel pageModel) {
+    public List<Index> save(List<Lemma> lemmas, PageModel pageModel) {
         if (stopService.isStopped()) {
-            return;
+            return new ArrayList<>();
         }
-        List<Index> collect = collect(lemmas, pageModel);
-        indexRepository.saveAll(collect);
+        return collect(lemmas, pageModel).join();
     }
 
     @Override
-    public List<Index> collect(List<Lemma> lemmas, PageModel pageModel) {
-        return lemmas
-                .stream()
-                .map(lemma -> init(pageModel, lemma))
-                .toList();
+    @Async
+    public CompletableFuture<List<Index>> collect(List<Lemma> lemmas, PageModel pageModel) {
+        return CompletableFuture.completedFuture(lemmas.parallelStream().map(lemma -> init(pageModel, lemma)).toList());
     }
 
     @Override
@@ -47,7 +46,7 @@ public class IndexModelServiceImpl implements IndexModelService {
                 .pageModel(pageModel)
                 .lemma(lemma)
                 .id(new Index.IndexKey(pageModel.getId(), lemma.getId()))
-                .rank(lemma.getRank().floatValue())
+                .rank(lemma.getRank())
                 .build();
     }
 
