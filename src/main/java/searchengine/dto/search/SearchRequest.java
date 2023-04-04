@@ -9,5 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SearchRequest {
     int offset() default 0;
+
     int limit() default 10;
 }

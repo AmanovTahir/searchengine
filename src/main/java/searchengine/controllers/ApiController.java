@@ -7,9 +7,9 @@ import searchengine.dto.index.IndexResponse;
 import searchengine.dto.search.SearchRequestDto;
 import searchengine.dto.search.SearchResponse;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.index.IndexService;
-import searchengine.services.search.SearchService;
-import searchengine.services.statistics.StatisticsService;
+import searchengine.services.StatisticsService;
+import searchengine.services.index.Index;
+import searchengine.services.search.Search;
 
 @RestController
 @RequestMapping("/api")
@@ -17,8 +17,8 @@ import searchengine.services.statistics.StatisticsService;
 public class ApiController {
 
     private final StatisticsService statisticsService;
-    private final IndexService indexService;
-    private final SearchService searchService;
+    private final Index index;
+    private final Search search;
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
@@ -27,21 +27,21 @@ public class ApiController {
 
     @GetMapping("/startIndexing")
     public ResponseEntity<IndexResponse> startIndexing() {
-        return ResponseEntity.ok(indexService.startIndexing());
+        return ResponseEntity.ok(index.startIndexing());
     }
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<IndexResponse> stopIndexing() {
-        return ResponseEntity.ok(indexService.stopIndexing());
+        return ResponseEntity.ok(index.stopIndexing());
     }
 
     @PostMapping(value = "/indexPage")
     public ResponseEntity<IndexResponse> indexPage(@RequestParam String url) {
-        return ResponseEntity.ok(indexService.indexPage(url));
+        return ResponseEntity.ok(index.indexPage(url));
     }
 
     @GetMapping("/search")
     public ResponseEntity<SearchResponse> search(SearchRequestDto searchRequestDto) {
-        return ResponseEntity.ok(searchService.getResult(searchRequestDto));
+        return ResponseEntity.ok(search.getResult(searchRequestDto));
     }
 }

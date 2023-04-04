@@ -47,6 +47,19 @@ public class Index implements Comparable<Index> {
         return Double.compare(o.rank, this.rank);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Index index = (Index) o;
+        return getId() != null && Objects.equals(getId(), index.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     @Embeddable
     @Getter
     @Setter
@@ -71,18 +84,5 @@ public class Index implements Comparable<Index> {
         public int hashCode() {
             return Objects.hash(lemmaId, pageId);
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Index index = (Index) o;
-        return getId() != null && Objects.equals(getId(), index.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

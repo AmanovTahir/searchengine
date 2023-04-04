@@ -2,12 +2,10 @@ package searchengine.model;
 
 
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import javax.persistence.Index;
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity

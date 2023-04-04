@@ -21,11 +21,6 @@ public class AppConfiguration {
         return new CopyOnWriteArraySet<>();
     }
 
-    @Bean
-    public boolean isStopped() {
-        return false;
-    }
-
     @Bean(value = "lock")
     public ReentrantReadWriteLock getLockService() {
         return new ReentrantReadWriteLock();
