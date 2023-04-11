@@ -10,9 +10,9 @@ import java.util.Set;
 
 public interface IndexModelService {
 
-    void save(List<Lemma> lemmas, PageModel pageModel);
+    Set<Index> save(List<Lemma> lemmas, PageModel pageModel);
 
-    List<Index> collect(List<Lemma> lemmas, PageModel pageModel);
+    Set<Index> collect(List<Lemma> lemmas, PageModel pageModel);
 
     Index init(PageModel pageModel, Lemma lemma);
 
@@ -21,4 +21,6 @@ public interface IndexModelService {
     List<Index> collectIndexesByPages(Set<PageModel> pages);
 
     Set<PageModel> findPagesByLemma(Lemma lem);
+
+    void saveAll(Set<Index> indices);
 }

@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface PageRepository extends JpaRepository<PageModel, Integer> {
     Optional<PageModel> findFirstByPathAndSite(String path, SiteModel site);
+
+    int countBySite(SiteModel site);
 }

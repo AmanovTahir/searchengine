@@ -15,6 +15,7 @@ import searchengine.services.SiteModelService;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -77,10 +78,11 @@ public class LemmaFinder {
         String query = searchRequestDto.getQuery();
         String site = searchRequestDto.getSite();
         SiteModel siteModel = siteModelService.findSiteByUrl(site);
+        Set<String> lemmas = collect(query).keySet();
         if (siteModel != null) {
-            return lemmaModelService.getLemmaBySite(collect(query).keySet(), siteModel);
+            return lemmaModelService.getLemmaBySite(lemmas, siteModel);
         }
-        return lemmaModelService.getLemmaAllSite(collect(query).keySet());
+        return lemmaModelService.getLemmaAllSite(lemmas);
     }
 
     private String htmlToText(String html) {

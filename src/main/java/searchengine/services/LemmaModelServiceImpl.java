@@ -3,7 +3,11 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.PageModel;
 import searchengine.model.SiteModel;
@@ -12,27 +16,46 @@ import searchengine.services.lemmatisator.LemmaFinder;
 import searchengine.services.parser.ParseState;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 @Service
+@Scope("prototype")
 @RequiredArgsConstructor
 @Log4j2
 public class LemmaModelServiceImpl implements LemmaModelService {
     private final LemmaFinder lemmaFinder;
     private final LemmaRepository lemmaRepository;
-    private final IndexModelService indexModelService;
+    private final ObjectProvider<IndexModelService> provider;
     private final ParseState parseState;
     private final ReentrantReadWriteLock lock;
 
     @Override
-    public void indexPage(PageModel pageModel) {
+    @Async
+    public CompletableFuture<Set<Index>> indexPage(PageModel pageModel) {
         if (parseState.isStopped()) {
-            return;
+            return CompletableFuture.completedFuture(new HashSet<>());
         }
         List<Lemma> lemmas = collect(pageModel);
-        indexModelService.save(lemmas, pageModel);
+        lemmaRepository.saveAllAndFlush(lemmas);
+        Set<Index> indices = provider
+                .stream()
+                .flatMap(indexModelService -> indexModelService.save(lemmas, pageModel).stream())
+                .collect(Collectors.toSet());
         lock.writeLock().unlock();
+        return CompletableFuture.completedFuture(indices);
+    }
+
+    @NotNull
+    private List<Lemma> collect(PageModel pageModel) {
+        Map<String, Integer> lemmasForContent = lemmaFinder.collect(pageModel.getContent());
+        lock.writeLock().lock();
+        return lemmasForContent
+                .entrySet()
+                .parallelStream()
+                .map(map -> init(pageModel, map))
+                .toList();
     }
 
     public Lemma init(PageModel pageModel, Map.Entry<String, Integer> map) {
@@ -91,14 +114,4 @@ public class LemmaModelServiceImpl implements LemmaModelService {
         lemmaRepository.deleteAllInBatch(lemmas);
     }
 
-    @NotNull
-    private List<Lemma> collect(PageModel pageModel) {
-        Map<String, Integer> lemmasForContent = lemmaFinder.collect(pageModel.getContent());
-        lock.writeLock().lock();
-        return lemmasForContent
-                .entrySet()
-                .stream()
-                .map(map -> init(pageModel, map))
-                .toList();
-    }
 }

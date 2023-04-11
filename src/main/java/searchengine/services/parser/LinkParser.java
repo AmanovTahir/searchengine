@@ -5,10 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import searchengine.model.SiteModel;
 import searchengine.services.connection.WebSiteConnection;
-import searchengine.services.index.PageIndex;
+import searchengine.services.index.PageIndexerHandlerImpl;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,10 +21,10 @@ import java.util.stream.Collectors;
 @Getter
 public class LinkParser {
     private static final String REGEX = "[-\\w+/=~_|!:,.;]*[^#?]/?+";
-    private static final String[] SUFFIX = new String[]{"jpg", "pdf", "doc", "docx", "mp4"};
+    private static final String[] SUFFIX = new String[]{"jpeg", "jpg", "pdf", "doc", "docx", "mp4", "JPG", "png", "PDF"};
     private final Set<String> links;
     private final WebSiteConnection connection;
-    private final PageIndex pageIndex;
+    private final PageIndexerHandlerImpl pageIndexerHandlerImpl;
     private final ParseState parseState;
 
     public Set<String> getLinks(String url, SiteModel site) {
@@ -44,12 +43,12 @@ public class LinkParser {
 
     private Set<String> collect(SiteModel site, String url) {
         return connection.getHTMLDocument(url).select("a")
-                .stream()
+                .parallelStream()
                 .map(element -> element.attr("abs:href"))
                 .distinct()
                 .filter(link -> filter(site, link))
                 .peek(log::info)
-                .peek(link -> pageIndex.indexPages(link, site))
+                .peek(link -> pageIndexerHandlerImpl.indexPages(link, site))
                 .collect(Collectors.toSet());
     }
 

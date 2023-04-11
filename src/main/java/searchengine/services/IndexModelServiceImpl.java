@@ -2,6 +2,7 @@ package searchengine.services;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
@@ -10,14 +11,12 @@ import searchengine.model.SiteModel;
 import searchengine.repository.IndexRepository;
 import searchengine.services.parser.ParseState;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @Service
+@Scope("prototype")
 @Log4j2
 public class IndexModelServiceImpl implements IndexModelService {
     private final IndexRepository indexRepository;
@@ -33,20 +32,19 @@ public class IndexModelServiceImpl implements IndexModelService {
     }
 
     @Override
-    public void save(List<Lemma> lemmas, PageModel pageModel) {
+    public Set<Index> save(List<Lemma> lemmas, PageModel pageModel) {
         if (parseState.isStopped()) {
-            return;
+            return new HashSet<>();
         }
-        List<Index> collect = collect(lemmas, pageModel);
-        indexRepository.saveAll(collect);
+        return collect(lemmas, pageModel);
     }
 
     @Override
-    public List<Index> collect(List<Lemma> lemmas, PageModel pageModel) {
+    public Set<Index> collect(List<Lemma> lemmas, PageModel pageModel) {
         return lemmas
-                .stream()
+                .parallelStream()
                 .map(lemma -> init(pageModel, lemma))
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -87,5 +85,10 @@ public class IndexModelServiceImpl implements IndexModelService {
                 .stream()
                 .map(Index::getPageModel)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void saveAll(Set<Index> indices) {
+        indexRepository.saveAllAndFlush(indices);
     }
 }

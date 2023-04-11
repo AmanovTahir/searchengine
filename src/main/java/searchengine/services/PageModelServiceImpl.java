@@ -66,15 +66,13 @@ public class PageModelServiceImpl implements PageModelService {
         Map<Lemma, Double> queryLemmas = lemmaFinder.getSearchQueryLemma(searchRequestDto);
         Set<Lemma> lemmas = lemmaModelService.getLemmasByQuery(queryLemmas);
         Optional<Lemma> lemmaOptional = lemmas.stream().findFirst();
-        return lemmaOptional.map(lemma -> getPagesBySearch(lemmas, lemma)).orElse(Collections.emptySet());
+        return lemmaOptional.map(lemma -> getPagesBySearch(queryLemmas.keySet(), lemma)).orElse(Collections.emptySet());
     }
 
     @NotNull
     private Set<PageModel> getPagesBySearch(Set<Lemma> lemmas, Lemma lem) {
         Set<PageModel> result = indexModelService.findPagesByLemma(lem);
-        lemmas.stream()
-                .map(lemma -> indexModelService.findPagesByLemma(lem))
-                .forEach(result::retainAll);
+        lemmas.stream().map(lemma -> indexModelService.findPagesByLemma(lem)).forEach(result::retainAll);
         return result;
     }
 }

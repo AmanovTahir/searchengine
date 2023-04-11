@@ -2,16 +2,12 @@
 
 indexing-settings:
   sites:
-    #    - url: https://www.playback.ru
-    #      name: PlayBack.Ru
-    - url: http://kulinarya.ru/
-      name: kulinarya.ru
-    #   - url: https://dombulgakova.ru/
-    #     name: dombulgakova
-    #    - url: https://nopaper.ru/
-    #      name: nopaper
-
-
+    - url: https://dombulgakova.ru/
+      name: dombulgakova.ru
+    - url: https://kulinarnia.ru/
+      name: kulinarnia.ru/
+    - url: https://www.svetlovka.ru/
+      name: svetlovka.ru
 
 jsoup-connection-settings:
   userAgent: SiteSearchBot

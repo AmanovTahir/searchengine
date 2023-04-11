@@ -5,7 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import searchengine.dto.search.SearchData;
 import searchengine.dto.search.SearchRequestDto;
 import searchengine.dto.search.SearchResponse;
@@ -23,15 +23,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
+@Service
 @RequiredArgsConstructor
 @Log4j2
-public class Search {
+public class SearchHandlerImpl implements SearchHandler {
     private final PageModelService pageModelService;
     private final SnippetCreator snippetCreator;
     private final IndexModelService indexModelService;
 
 
+    @Override
     public SearchResponse getResult(SearchRequestDto searchRequestDto) {
         String query = searchRequestDto.getQuery();
         if (query.isEmpty() || query.trim().isBlank()) {
@@ -46,10 +47,10 @@ public class Search {
     private SearchResponse getSearchResponse(SearchRequestDto searchRequestDto) {
         Set<PageModel> pageModels = pageModelService.getSearchQueryPages(searchRequestDto);
         Map<PageModel, Double> relevance = getRelativeRelevance(pageModels);
-        List<PageModel> sortedPageModels = sortDesc(relevance);
-        List<PageModel> pageable = getPageable(searchRequestDto, sortedPageModels);
+        List<PageModel> resultList = sortDesc(relevance);
+        List<PageModel> pageable = getPageable(searchRequestDto, resultList);
         List<SearchData> dataList = collectDataList(searchRequestDto.getQuery(), relevance, pageable);
-        return new SearchResponse(true, sortedPageModels.size(), dataList);
+        return new SearchResponse(true, resultList.size(), dataList);
     }
 
 

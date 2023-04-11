@@ -2,7 +2,7 @@ package searchengine.services.index;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import searchengine.config.SitesList;
 import searchengine.dto.index.IndexResponse;
 import searchengine.exceptions.ApiRequestException;
@@ -11,17 +11,18 @@ import searchengine.exceptions.FaultResponse;
 import searchengine.model.IndexState;
 import searchengine.model.SiteModel;
 import searchengine.services.SiteModelService;
-import searchengine.services.parser.AsyncSiteParser;
+import searchengine.services.parser.AsyncParserService;
 
-@Component
+@Service
 @RequiredArgsConstructor
-public class Index {
+public class IndexHandlerImpl implements IndexHandler {
     private final IndexState indexState;
     private final SitesList sitesList;
-    private final AsyncSiteParser parser;
+    private final AsyncParserService parser;
     private final SiteModelService siteModelService;
 
 
+    @Override
     public IndexResponse startIndexing() {
         if (indexState.isIndexing()) {
             throwException(ErrorMessages.INDEXING_ALREADY_STARTED);
@@ -31,7 +32,7 @@ public class Index {
         return new IndexResponse(true);
     }
 
-
+    @Override
     public IndexResponse stopIndexing() {
         if (!indexState.isIndexing()) {
             throwException(ErrorMessages.INDEXING_NOT_STARTED);
@@ -41,7 +42,7 @@ public class Index {
         return new IndexResponse(true);
     }
 
-
+    @Override
     public IndexResponse indexPage(String url) {
         SiteModel siteModel = siteModelService.matchAndGetModel(url)
                 .orElseThrow(() -> new ApiRequestException(HttpStatus.NOT_FOUND,

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -30,14 +31,26 @@ public class SnippetCreator {
         for (String searchWord : searchWords) {
             for (String string : strings) {
                 if (string.toLowerCase().contains(searchWord)) {
-                    String splitText = getSplitText(searchWord, string.toLowerCase())
-                            .replaceAll(searchWord + ".*?(\\s)", "<b>" + searchWord + "</b> ");
+                    String splitText = getSplitText(searchWord, string.toLowerCase());
                     stringBuilder.append(splitText);
                     break;
                 }
             }
         }
-        return stringBuilder.toString();
+        return setBoldWordInText(searchWords, stringBuilder.toString());
+    }
+
+    private String setBoldWordInText(List<String> searchWords, String text) {
+        return Arrays.stream(text.split("\\s")).map(str -> {
+            for (String searchWord : searchWords) {
+                if (str.toLowerCase().startsWith(searchWord)) {
+                    String matchWord = str.toLowerCase();
+                    String cleanWord = matchWord.replaceAll("[^" + matchWord + "]", "");
+                    return "<b>".concat(cleanWord).concat("</b>");
+                }
+            }
+            return str;
+        }).collect(Collectors.joining(" "));
     }
 
     @NotNull
